@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Quality Evaluation Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .card { background-color: white; border-radius: 0.75rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0; }
+        .badge { display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 9999px; font-weight: 500; font-size: 0.75rem; }
+        .badge-critical { background-color: #dc2626; color: white; }
+        .badge-serious { background-color: #f97316; color: white; }
+        .badge-minor { background-color: #facc15; color: #422006; }
+        .info-icon, .help-icon { cursor: help; position: relative; display: inline-flex; align-items: center; justify-content: center; width: 1rem; height: 1rem; border-radius: 50%; color: white; font-size: 0.7rem; font-weight: bold; }
+        .info-icon { background-color: #94a3b8; margin-left: 8px; }
+        .help-icon { background-color: #a0aec0; margin-left: 8px;}
+        .info-icon .tooltip, .help-icon .tooltip { visibility: hidden; width: 320px; background-color: #1e293b; color: #fff; text-align: left; border-radius: 6px; padding: 8px 12px; position: absolute; z-index: 10; bottom: 135%; left: 50%; margin-left: -160px; opacity: 0; transition: opacity 0.3s; font-size: 0.8rem; font-weight: 400; line-height: 1.4; }
+        .info-icon:hover .tooltip, .help-icon:hover .tooltip { visibility: visible; opacity: 1; }
+        input[type="checkbox"], input[type="radio"] { accent-color: #0284c7; }
+        fieldset:disabled { opacity: 0.5; cursor: not-allowed; }
+        .tab-button { padding: 0.75rem 1.5rem; font-weight: 600; color: #475569; border-bottom: 3px solid transparent; cursor: pointer; transition: all 0.2s; }
+        .tab-button.active { color: #0284c7; border-bottom-color: #0284c7; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .delete-btn { color: #ef4444; font-weight: bold; cursor: pointer; transition: color 0.2s; }
+        .delete-btn:hover { color: #b91c1c; }
+        .modal { transition: opacity 0.25s ease; }
+        .rank-select {
+            width: 80px;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+            background-color: #f9fafb;
+            font-size: 0.875rem;
+        }
+        .rank-select:disabled {
+            background-color: #e5e7eb;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-6 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-6 relative">
+            <h1 class="text-3xl sm:text-4xl font-bold text-slate-800">Quality Evaluation Dashboard</h1>
+            <p class="mt-2 text-lg text-slate-600">An efficient tool for nDCG & SBS Assessment based on official guidelines.</p>
+        </header>
+
+        <div class="border-b border-slate-200 mb-8">
+            <nav class="flex -mb-px">
+                <button class="tab-button active" data-tab="tools">nDCG Tools</button>
+                <button class="tab-button" data-tab="report">SBS & Remarks Generator</button>
+                <button class="tab-button" data-tab="issues">Manage Issues</button>
+            </nav>
+        </div>
+
+        <div id="tab-content-container">
+            <div id="tools-tab" class="tab-content active">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="card p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-2xl font-bold text-slate-700">nDCG Calculator</h2>
+                            <div id="dcg-score-display" class="text-3xl font-bold bg-sky-600 text-white rounded-full flex items-center justify-center w-16 h-16">3</div>
+                        </div>
+                        <div class="space-y-6">
+                            <fieldset>
+                                <legend class="text-md font-semibold text-slate-700 mb-2">Critical Issues Check</legend>
+                                <div class="space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                    <label class="flex items-center justify-between"><span class="flex items-center"><input type="checkbox" class="ndcg-checkbox h-5 w-5 mr-3" data-type="critical" data-key="gov_redline" data-pt="Governance problem" data-priority="A" data-sub-priority="1"><span><span class="badge badge-critical">0pt</span> Governance Redline Issue</span><span class="help-icon">?<span class="tooltip">Prohibited, counterfeit, or inappropriate content/spam products.</span></span></span><select class="rank-select" disabled><option value="">Rank?</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+                                    <label class="flex items-center justify-between"><span class="flex items-center"><input type="checkbox" class="ndcg-checkbox h-5 w-5 mr-3" data-type="critical" data-key="rel_irrelevant" data-pt="Commodity relevance" data-priority="A" data-sub-priority="2"><span><span class="badge badge-critical">0pt</span> Commodity Relevance: Irrelevant</span><span class="help-icon">?<span class="tooltip">The product does not belong to the queried category at all. Ex: q=dress, doc=shoes.</span></span></span><select class="rank-select" disabled><option value="">Rank?</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+                                    <label class="flex items-center justify-between"><span class="flex items-center"><input type="checkbox" class="ndcg-checkbox h-5 w-5 mr-3" data-type="critical" data-key="inv_no_value" data-pt="Invalid commodity" data-priority="A" data-sub-priority="3"><span><span class="badge badge-critical">0pt</span> Invalid Commodity (No Value)</span><span class="help-icon">?<span class="tooltip">All SKUs are sold out, the product link is broken, or it's a test item. This provides no value to the user.</span></span></span><select class="rank-select" disabled><option value="">Rank?</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+                                </div>
+                            </fieldset>
+                            <fieldset id="deduction-fieldset">
+                                <legend class="text-md font-semibold text-slate-700 mb-2">Problem Deductions</legend>
+                                <div class="space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-200 mb-4">
+                                    <p class="font-semibold text-slate-600">Serious Problems <span class="text-sm font-normal text-slate-500">(Max -2pt deduction)</span></p>
+                                    <label class="flex items-center justify-between"><span class="flex items-center"><input type="checkbox" class="ndcg-checkbox h-4 w-4 mr-3" data-type="serious" data-key="rel_weak" data-pt="Commodity relevance" data-priority="A" data-sub-priority="4"><span><span class="badge badge-serious">-2pt</span> Relevance: Weakly Relevant</span><span class="help-icon">?<span class="tooltip">Product has a similar function, is a close substitute, or has a different attribute/model from the same brand. Ex: q=iphone 12, doc=iphone 13.</span></span></span><select class="rank-select" disabled><option value="">Rank?</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+                                    <label class="flex items-center justify-between"><span class="flex items-center"><input type="checkbox" class="ndcg-checkbox h-4 w-4 mr-3" data-type="serious" data-key="dem_secondary" data-pt="Main and secondary demand" data-priority="B" data-sub-priority="1"><span><span class="badge badge-serious">-1pt</span> Secondary Demand Issue</span><span class="help-icon">?<span class="tooltip">The product meets a niche demand when the query has a clear and more popular main demand.</span></span></span><select class="rank-select" disabled><option value="">Rank?</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+                                    <label class="flex items-center justify-between"><span class="flex items-center"><input type="checkbox" class="ndcg-checkbox h-4 w-4 mr-3" data-type="serious" data-key="inv_some_value" data-pt="Invalid commodity" data-priority="B" data-sub-priority="2"><span><span class="badge badge-serious">-1pt</span> Invalid Commodity (Some value)</span><span class="help-icon">?<span class="tooltip">The main SKU is unavailable, but other SKUs are still in stock or access to the shop still provides some value to the user.</span></span></span><select class="rank-select" disabled><option value="">Rank?</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+                                    <label class="flex items-center justify-between"><span class="flex items-center"><input type="checkbox" class="ndcg-checkbox h-4 w-4 mr-3" data-type="serious" data-key="rating_low" data-pt="Commodity rating" data-priority="B" data-sub-priority="4"><span><span class="badge badge-serious">-1pt</span> Rating Issue</span><span class="help-icon">?<span class="tooltip">The product has 30 or more reviews and the average rating is 3.8 or lower.</span></span></span><select class="rank-select" disabled><option value="">Rank?</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+                                    <label class="flex items-center justify-between"><span class="flex items-center"><input type="checkbox" class="ndcg-checkbox h-4 w-4 mr-3" data-type="serious" data-key="info_cover" data-pt="Info quality problem" data-priority="B" data-sub-priority="6"><span><span class="badge badge-serious">-1pt</span> Info Quality: Cover Image Issue</span><span class="help-icon">?<span class="tooltip">The main cover image does not clearly display the product, is low-quality, or misleading (excessive Photoshop).</span></span></span><select class="rank-select" disabled><option value="">Rank?</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+                                    <label class="flex items-center justify-between"><span class="flex items-center"><input type="checkbox" class="ndcg-checkbox h-4 w-4 mr-3" data-type="serious" data-key="info_pdp" data-pt="Info quality problem" data-priority="B" data-sub-priority="6"><span><span class="badge badge-serious">-1pt</span> Info Quality: PDP/SKU Issue</span><span class="help-icon">?<span class="tooltip">Lacks core information in the PDP or SKUs needed for a purchase decision (e.g., voltage, expiration date).</span></span></span><select class="rank-select" disabled><option value="">Rank?</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+                                </div>
+                                <div class="space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                    <div class="flex items-center">
+                                        <p class="font-semibold text-slate-600">Minor Problems <span class="text-sm font-normal text-slate-500">(Deducts 1pt if ≥ 2)</span></p>
+                                        <span class="info-icon">i<span class="tooltip">As per guidelines, minor issue deductions do not stack with serious issue deductions.</span></span>
+                                    </div>
+                                    <label class="flex items-center justify-between"><span class="flex items-center"><input type="checkbox" class="ndcg-checkbox h-4 w-4 mr-3" data-type="minor" data-key="info_size" data-pt="Info quality problem" data-priority="B" data-sub-priority="6"><span><span class="badge badge-minor">Minor</span> Info Quality: Missing clothing size</span><span class="help-icon">?<span class="tooltip">Lacks a size chart in cm or weight/age information for clothing items.</span></span></span><select class="rank-select" disabled><option value="">Rank?</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+                                    <label class="flex items-center justify-between"><span class="flex items-center"><input type="checkbox" class="ndcg-checkbox h-4 w-4 mr-3" data-type="minor" data-key="info_cover_minor" data-pt="Info quality problem" data-priority="B" data-sub-priority="6"><span><span class="badge badge-minor">Minor</span> Cover: Important info missing</span><span class="help-icon">?<span class="tooltip">The cover image shows the product but is missing some important (non-critical) information.</span></span></span><select class="rank-select" disabled><option value="">Rank?</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+                                    <label class="flex items-center justify-between"><span class="flex items-center"><input type="checkbox" class="ndcg-checkbox h-4 w-4 mr-3" data-type="minor" data-key="info_title" data-pt="Info quality problem" data-priority="B" data-sub-priority="6"><span><span class="badge badge-minor">Minor</span> Title Mismatch (but relevant)</span><span class="help-icon">?<span class="tooltip">The product title does not directly relate to the query, although the product itself is relevant.</span></span></span><select class="rank-select" disabled><option value="">Rank?</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+                                    <label class="flex items-center justify-between"><span class="flex items-center"><input type="checkbox" class="ndcg-checkbox h-4 w-4 mr-3" data-type="minor" data-key="trust_mislead" data-pt="Trust Impact" data-priority="B" data-sub-priority="5"><span><span class="badge badge-minor">Minor</span> Trust Impact: Traffic Misleading</span><span class="help-icon">?<span class="tooltip">Use of absolute terms ('the best'), inducing positive reviews, or other practices that mislead the user.</span></span></span><select class="rank-select" disabled><option value="">Rank?</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+                                    <label class="flex items-center justify-between"><span class="flex items-center"><input type="checkbox" class="ndcg-checkbox h-4 w-4 mr-3" data-type="minor" data-key="info_1img" data-pt="Info quality problem" data-priority="B" data-sub-priority="6"><span><span class="badge badge-minor">Minor</span> Info Quality: 1 image & 1 description</span><span class="help-icon">?<span class="tooltip">The product has only 1 image (or multiple repetitive ones) AND <= 1 sentence in the product description.</span></span></span><select class="rank-select" disabled><option value="">Rank?</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+                                </div>
+                            </fieldset>
+                            <fieldset id="pt-fieldset">
+                                <legend class="text-md font-semibold text-slate-700 mb-2 flex items-center">
+                                    Suggested Problem Type (PT)
+                                    <span class="info-icon">i<span class="tooltip"><strong>PT Suggestion Logic:</strong><br>1. <strong>Priority A > Priority B:</strong> Any 'A' priority issue (e.g., Weakly Relevant) will always be suggested over any 'B' priority issues.<br>2. <strong>Quantity Matters:</strong> For issues of the same priority level, the PT with the most occurrences is chosen.<br>3. <strong>Tie-Breaker Rule:</strong> If quantities are tied, the PT that appears higher up in the calculator list is chosen (e.g., 'Secondary Demand' wins over 'Rating Issue').</span></span>
+                                </legend>
+                                <div id="pt-suggestion-list" class="space-y-2 p-4 bg-slate-50 rounded-lg border border-slate-200 min-h-[60px]">
+                                    <p id="pt-placeholder" class="text-slate-500">Select issues above to see PT suggestions.</p>
+                                </div>
+                            </fieldset>
+                            <div class="grid grid-cols-2 gap-4 mt-4">
+                               <button id="send-to-ls-btn" class="w-full bg-sky-600 text-white font-bold py-3 rounded-md hover:bg-sky-700 text-lg">Send to Left Side</button>
+                               <button id="send-to-rs-btn" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-md hover:bg-indigo-700 text-lg">Send to Right Side</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card p-6">
+                        <h2 class="text-2xl font-bold text-slate-700 mb-6">Bad Case Quick Check</h2>
+                        <div class="space-y-4">
+                            <div class="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                <h3 class="font-semibold text-slate-600 mb-2">First Slot (Rank 1)</h3>
+                                <div class="space-y-2 text-sm text-slate-700">
+                                    <label class="flex items-center"><input type="checkbox" class="h-4 w-4 mr-2">Governance Issue (0pt)</label>
+                                    <label class="flex items-center"><input type="checkbox" class="h-4 w-4 mr-2">Irrelevant (0pt)</label>
+                                    <label class="flex items-center"><input type="checkbox" class="h-4 w-4 mr-2">Weak Relevant (1pt)</label>
+                                </div>
+                            </div>
+                            <div class="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                <h3 class="font-semibold text-slate-600 mb-2">Top 6 (Any Rank)</h3>
+                                <div class="space-y-2 text-sm text-slate-700">
+                                    <label class="flex items-center"><input type="checkbox" class="h-4 w-4 mr-2">Governance Issue (0pt)</label>
+                                    <label class="flex items-center"><input type="checkbox" class="h-4 w-4 mr-2">Irrelevant (0pt)</label>
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-500">This manual checklist is designed to quickly assess whether the conditions for a "Bad Case" are met.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="report-tab" class="tab-content">
+                <div class="card p-6">
+                    <h2 class="text-2xl font-bold text-slate-700 mb-6">SBS Analysis & Remarks Generator</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                             <h3 class="text-md font-semibold text-slate-700 mb-3">GSB Suggestion</h3>
+                             <div id="gsb-suggestion-box" class="p-4 border-2 border-dashed border-slate-300 rounded-md text-center bg-slate-50 min-h-[80px] flex items-center justify-center">
+                                <p id="gsb-suggestion-text" class="text-slate-700 font-semibold">Log issues below to get a real-time suggestion.</p>
+                             </div>
+                        </div>
+                        <div>
+                            <h3 class="text-md font-semibold text-slate-700 mb-3">Final GSB Score</h3>
+                            <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 min-h-[80px] flex items-center justify-center">
+                                <div class="flex justify-around items-center text-center w-full">
+                                    <div><input type="radio" id="gsb_2" name="gsb-score" value="2"><label for="gsb_2" class="block font-bold text-sky-700 text-lg cursor-pointer p-2">2</label></div>
+                                    <div><input type="radio" id="gsb_1" name="gsb-score" value="1"><label for="gsb_1" class="block font-bold text-sky-600 text-lg cursor-pointer p-2">1</label></div>
+                                    <div><input type="radio" id="gsb_0" name="gsb-score" value="0" checked><label for="gsb_0" class="block font-bold text-slate-600 text-lg cursor-pointer p-2">0</label></div>
+                                    <div><input type="radio" id="gsb-1" name="gsb-score" value="-1"><label for="gsb-1" class="block font-bold text-orange-600 text-lg cursor-pointer p-2">-1</label></div>
+                                    <div><input type="radio" id="gsb-2" name="gsb-score" value="-2"><label for="gsb-2" class="block font-bold text-red-700 text-lg cursor-pointer p-2">-2</label></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 bg-slate-50 rounded-lg border mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <div>
+                                <label for="original-query" class="block text-sm font-medium text-slate-600">Original Query</label>
+                                <input type="text" id="original-query" placeholder="e.g., vestidos curtos" class="mt-1 w-full p-2 border border-slate-300 rounded-md">
+                            </div>
+                            <div>
+                                <label for="query-intent" class="block text-sm font-medium text-slate-600">It is looking for...</label>
+                                <div class="relative">
+                                    <input type="text" id="query-intent" placeholder="Auto-translates from Original Query" class="mt-1 w-full p-2 border border-slate-300 rounded-md">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" viewBox="0 0 16 16">
+                                        <path d="M4.545 6.714 4.11 8H3l1.862-5h1.284L8 8H6.833l-.435-1.286H4.545zm1.634-.736L5.5 3.956h-.049l-.679 2.022H6.18z"/>
+                                        <path d="M0 2a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v3h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-3H2a2 2 0 0 1-2-2V2zm4 0a1 1 0 0 0-1 1v1h1V2zm2 0h1v1h-1V2zm1.5 0h1v1h-1V2zm1.5 0h1v1h-1V2zM13 8.5a1 1 0 0 0-1-1H7V6h5a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v2h1V3a1 1 0 0 0 1-1h1v1H3a1 1 0 0 0-1 1v1h1V4a1 1 0 0 0 1-1h1v1H5a1 1 0 0 0-1 1v1h1V5a1 1 0 0 0 1-1h1v1H7a1 1 0 0 0-1 1v1h1V6a1 1 0 0 0 1-1h1v1h-1a1 1 0 0 0-1 1v1h1V7.5a1 1 0 0 0 1-1h1v1h-1a1 1 0 0 0-1 1V10h1V8.5zm-5 4a1 1 0 0 0-1-1H2v1h5a1 1 0 0 0 1-1V9H7a1 1 0 0 0-1 1v.5h1v-1a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1h1V9a1 1 0 0 0 1-1h1v1H3a1 1 0 0 0-1 1v1h1v-1a1 1 0 0 0 1-1h1v1h-1a1 1 0 0 0-1 1v1h1v-1a1 1 0 0 0 1-1h1v1h-1a1 1 0 0 0-1 1v1h4a1 1 0 0 0 1-1V9.5a1 1 0 0 0-1-1H9v1h1a1 1 0 0 0 1-1V8h-1v1.5a1 1 0 0 0 1 1H13v1h-1.5a1 1 0 0 0-1-1H11v-1h-1v1h-1v-1h-1v1h-1v-1H8v1z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-3">
+                            <h3 class="font-bold text-lg text-slate-700 text-center mb-2">Left Side (LS)</h3>
+                             <div>
+                                <label for="ls-ad-ranks" class="block text-sm font-medium text-slate-600">Ad Ranks</label>
+                                <input type="text" id="ls-ad-ranks" placeholder="e.g., 1, 3, 5 or No Ads" class="mt-1 w-full p-2 border border-slate-300 rounded-md">
+                            </div>
+                            <div class="border-t border-slate-200 my-2"></div>
+                            <div class="space-y-2">
+                                <div class="flex items-end gap-2">
+                                    <div class="flex-grow">
+                                        <label for="ls-issue-rank" class="block text-sm font-medium text-slate-600">Rank</label>
+                                        <select id="ls-issue-rank" class="mt-1 w-full p-2 border border-slate-300 rounded-md">
+                                            <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex-grow-[2]">
+                                        <label for="ls-issue-select" class="block text-sm font-medium text-slate-600">Issue</label>
+                                        <select id="ls-issue-select" class="mt-1 w-full p-2 border border-slate-300 rounded-md"></select>
+                                    </div>
+                                </div>
+                                <div>
+                                     <label for="ls-issue-comment" class="block text-sm font-medium text-slate-600">Comment (optional)</label>
+                                     <input type="text" id="ls-issue-comment" placeholder="e.g., The product is a set" class="mt-1 w-full p-2 border border-slate-300 rounded-md">
+                                </div>
+                                <button id="ls-add-issue-btn" class="w-full bg-sky-600 text-white font-semibold py-2 rounded-md hover:bg-sky-700 text-sm">Add Issue to LS</button>
+                            </div>
+                            <div id="ls-issue-log" class="space-y-2 text-sm min-h-[120px] bg-white p-2 rounded border"></div>
+                         </div>
+                        <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-3">
+                            <h3 class="font-bold text-lg text-slate-700 text-center mb-2">Right Side (RS)</h3>
+                            <div>
+                                <label for="rs-ad-ranks" class="block text-sm font-medium text-slate-600">Ad Ranks</label>
+                                <input type="text" id="rs-ad-ranks" placeholder="e.g., No Ads" class="mt-1 w-full p-2 border border-slate-300 rounded-md">
+                            </div>
+                            <div class="border-t border-slate-200 my-2"></div>
+                             <div class="space-y-2">
+                                <div class="flex items-end gap-2">
+                                    <div class="flex-grow">
+                                        <label for="rs-issue-rank" class="block text-sm font-medium text-slate-600">Rank</label>
+                                        <select id="rs-issue-rank" class="mt-1 w-full p-2 border border-slate-300 rounded-md">
+                                            <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+                                        </select>
+                                    </div>
+                                     <div class="flex-grow-[2]">
+                                        <label for="rs-issue-select" class="block text-sm font-medium text-slate-600">Issue</label>
+                                        <select id="rs-issue-select" class="mt-1 w-full p-2 border border-slate-300 rounded-md"></select>
+                                    </div>
+                                </div>
+                                <div>
+                                     <label for="rs-issue-comment" class="block text-sm font-medium text-slate-600">Comment (optional)</label>
+                                     <input type="text" id="rs-issue-comment" placeholder="e.g., The product is a beach umbrella" class="mt-1 w-full p-2 border border-slate-300 rounded-md">
+                                </div>
+                                <button id="rs-add-issue-btn" class="w-full bg-sky-600 text-white font-semibold py-2 rounded-md hover:bg-sky-700 text-sm">Add Issue to RS</button>
+                            </div>
+                            <div id="rs-issue-log" class="space-y-2 text-sm min-h-[120px] bg-white p-2 rounded border"></div>
+                         </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-lg font-semibold text-slate-700">Generated Remarks</h3>
+                            <div class="flex gap-2">
+                                <button id="clear-tool-btn" class="bg-red-600 text-white font-semibold px-4 py-2 rounded-md hover:bg-red-700">Clear & Start New</button>
+                                <button id="copy-report-btn" class="bg-emerald-600 text-white font-semibold px-4 py-2 rounded-md hover:bg-emerald-700">Copy Remarks</button>
+                            </div>
+                        </div>
+                        <textarea id="final-report" rows="18" class="w-full p-3 border border-slate-300 rounded-md bg-slate-50 font-mono text-sm" readonly></textarea>
+                        <button id="generate-report-btn" class="w-full mt-4 bg-sky-600 text-white font-bold py-3 rounded-md hover:bg-sky-700 text-lg">Generate Full Remarks</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="issues-tab" class="tab-content">
+                <div class="card p-6">
+                    <h2 class="text-2xl font-bold text-slate-700 mb-6">Manage Custom Issues</h2>
+                    <div class="max-w-2xl mx-auto">
+                        <div class="mb-8 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                            <h3 class="text-lg font-semibold text-slate-700 mb-3">Add New Custom Issue</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-4">
+                                <div class="md:col-span-2">
+                                    <label for="custom-issue-name" class="block text-sm font-medium text-slate-600">Issue Name</label>
+                                    <input type="text" id="custom-issue-name" placeholder="e.g., Duplicated product in Top 3" class="mt-1 w-full p-2 border border-slate-300 rounded-md">
+                                </div>
+                                <div>
+                                    <label for="custom-issue-type" class="block text-sm font-medium text-slate-600">Type</label>
+                                    <select id="custom-issue-type" class="mt-1 w-full p-2 border border-slate-300 rounded-md">
+                                        <option value="minor">Minor</option>
+                                        <option value="serious">Serious</option>
+                                        <option value="critical">Critical</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button id="add-custom-issue-btn" class="w-full bg-emerald-600 text-white font-semibold py-2 rounded-md hover:bg-emerald-700 text-sm">Save New Custom Issue</button>
+                        </div>
+                        
+                        <div>
+                             <h3 class="text-lg font-semibold text-slate-700 mb-3">Your Custom Issues</h3>
+                             <div id="custom-issues-list-container" class="space-y-2">
+                               <!-- Custom issues will be rendered here by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal (hidden by default) -->
+    <div id="edit-issue-modal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+            <h3 class="text-xl font-bold mb-4 text-slate-800">Edit Custom Issue</h3>
+            <input type="hidden" id="edit-issue-key">
+            <div>
+                <label for="edit-issue-name" class="block text-sm font-medium text-slate-600">Issue Name</label>
+                <input type="text" id="edit-issue-name" class="mt-1 w-full p-2 border border-slate-300 rounded-md">
+            </div>
+            <div class="mt-4">
+                <label for="edit-issue-type" class="block text-sm font-medium text-slate-600">Type</label>
+                <select id="edit-issue-type" class="mt-1 w-full p-2 border border-slate-300 rounded-md">
+                    <option value="minor">Minor</option>
+                    <option value="serious">Serious</option>
+                    <option value="critical">Critical</option>
+                </select>
+            </div>
+            <div class="mt-6 flex justify-end gap-3">
+                <button id="cancel-edit-btn" class="px-4 py-2 bg-slate-200 text-slate-800 font-semibold rounded-md hover:bg-slate-300">Cancel</button>
+                <button id="save-edit-btn" class="px-4 py-2 bg-emerald-600 text-white font-semibold rounded-md hover:bg-emerald-700">Save Changes</button>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="text-center mt-12 mb-4">
+        <p class="text-xs text-slate-500">
+            Tool developed by Rayane Reis.
+        </p>
+    </footer>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- CONFIGURAÇÃO DA API DE TRADUÇÃO ---
+            const BACKEND_TRANSLATE_URL = "https://translate-proxy-495910137153.southamerica-east1.run.app";
+
+            // --- DATABASES ---
+            const ptDatabase = {
+                "Governance problem": { priority: "A", description: "Products that violate laws, platform rules, or are unsafe/unfair. Includes prohibited items, counterfeits, and inappropriate content." },
+                "Commodity relevance": { priority: "A", description: "The product does not match the user's query in terms of category, brand, or critical attributes. Includes weak and irrelevant results." },
+                "Invalid commodity": { priority: "A", description: "The product link is broken, all SKUs are sold out, or it's a test item, providing no value to the user." },
+                "Main and secondary demand": { priority: "B", description: "When a query has multiple intents, the result serves a less popular (niche) demand instead of the main one." },
+                "Commodity rating": { priority: "B", description: "The product's rating is low (<= 3.8 with >= 30 reviews), indicating poor user satisfaction." },
+                "Info quality problem": { priority: "B", description: "Issues with the product's presentation (images, title, description) that hinder a user's purchase decision. E.g., missing size chart, misleading photos." },
+                "Trust Impact": { priority: "B", description: "Practices that mislead the user, such as using absolute terms ('the best'), inducing positive reviews, or obscuring the product image." },
+                "Commodity duplication": { priority: "B", description: "Multiple results in the Top 6 are identical or highly similar, offering no new value."},
+                "Commodity diversity": { priority: "B", description: "Results lack variety, showing multiple items of the same narrow sub-category when a broader category was queried."},
+                "Error correction": { priority: "N/A", description: "Issues related to the system's handling of misspelled queries."},
+                "Brand Authority": { priority: "N/A", description: "Issues related to the authoritativeness of the brand or store for a given query."}
+            };
+            let issueDatabase = {
+                'gov_redline': { text: 'Governance Redline', type: 'critical', priority: 0, dcg: 0, report_name: 'Governance Redline' },
+                'rel_irrelevant': { text: 'Relevance: Irrelevant', type: 'critical', priority: 0, dcg: 0, report_name: 'Irrelevant' },
+                'inv_no_value': { text: 'Invalid Commodity: No Value', type: 'critical', priority: 0, dcg: 0, report_name: 'Invalid commodity' },
+                'rel_weak': { text: 'Relevance: Weakly relavance', type: 'serious', priority: 1, dcg: 1, report_name: 'Weakly relevance' },
+                'dem_secondary': { text: 'Secondary Demand', type: 'serious', priority: 2, dcg: 2, report_name: 'Secondary Demand' },
+                'info_cover': { text: 'Info Quality: Cover Image', type: 'serious', priority: 2, dcg: 2, report_name: 'Info quality cover image' },
+                'info_pdp': { text: 'Info Quality: PDP/SKU', type: 'serious', priority: 2, dcg: 2, report_name: 'Info quality SKU info incomplete' },
+                'inv_some_value': { text: 'Invalid Commodity: Some Value', type: 'serious', priority: 2, dcg: 2, report_name: 'Invalid commodity' },
+                'rating_low': { text: 'Rating Issue', type: 'serious', priority: 2, dcg: 2, report_name: 'Commodity Rating' },
+                'info_size': { text: 'Info Quality: Missing Size', type: 'minor', priority: 3, dcg: 2, report_name: 'Info quality size missing' },
+                'info_cover_minor': { text: 'Info Quality: Cover Minor', type: 'minor', priority: 3, dcg: 2, report_name: 'Info quality cover image' },
+                'info_title': { text: 'Info Quality: Title Mismatch', type: 'minor', priority: 3, dcg: 2, report_name: 'Info quality title mismatch' },
+                'trust_mislead': { text: 'Trust Impact: Misleading', type: 'minor', priority: 3, dcg: 2, report_name: 'Trust Impact' },
+                'info_1img': { text: 'Info Quality: 1 img & 1 desc', type: 'minor', priority: 3, dcg: 2, report_name: 'Info quality low content' }
+            };
+
+            // --- GLOBAL STATE ---
+            let lsIssues = [];
+            let rsIssues = [];
+            let sbsInitialized = false;
+            let issuesInitialized = false;
+            let ndcgToolsInitialized = false;
+
+            // --- CORE UI FUNCTIONS ---
+            let calculateDcgScore = () => {};
+
+            function resetTool() {
+                // 1. Reset nDCG Tab
+                const ndcgCheckboxes = document.querySelectorAll('.ndcg-checkbox');
+                ndcgCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                    const rankSelect = checkbox.closest('label').querySelector('.rank-select');
+                    if (rankSelect) {
+                        rankSelect.value = "";
+                        rankSelect.disabled = true;
+                    }
+                });
+                
+                if (ndcgToolsInitialized) {
+                    calculateDcgScore();
+                }
+
+                // 2. Reset SBS Tab inputs
+                document.getElementById('original-query').value = '';
+                document.getElementById('query-intent').value = '';
+                document.getElementById('ls-ad-ranks').value = '';
+                document.getElementById('rs-ad-ranks').value = '';
+                document.getElementById('final-report').value = '';
+
+                // 3. Reset SBS global state and UI
+                lsIssues = [];
+                rsIssues = [];
+                if (sbsInitialized) {
+                    renderSbsIssues('ls');
+                    renderSbsIssues('rs');
+                    calculateGsbSuggestion();
+                    document.getElementById('gsb_0').checked = true;
+                }
+                
+                alert('A ferramenta foi reiniciada para o próximo caso.');
+            }
+
+            // --- CUSTOM ISSUE FUNCTIONS ---
+            function loadCustomIssues() {
+                const customIssues = JSON.parse(localStorage.getItem('sbsCustomIssues')) || {};
+                issueDatabase = { ...issueDatabase, ...customIssues };
+            }
+
+            function saveCustomIssues() {
+                const customIssuesToSave = {};
+                for (const key in issueDatabase) {
+                    if (key.startsWith('custom_')) {
+                        customIssuesToSave[key] = issueDatabase[key];
+                    }
+                }
+                localStorage.setItem('sbsCustomIssues', JSON.stringify(customIssuesToSave));
+            }
+
+            function renderCustomIssuesList() {
+                const container = document.getElementById('custom-issues-list-container');
+                if (!container) return;
+                container.innerHTML = ''; 
+                
+                const customKeys = Object.keys(issueDatabase).filter(key => key.startsWith('custom_')).sort((a,b) => issueDatabase[a].text.localeCompare(issueDatabase[b].text));
+
+                if (customKeys.length === 0) {
+                    container.innerHTML = '<p class="text-sm text-slate-500 text-center">No custom issues added yet.</p>';
+                    return;
+                }
+                
+                customKeys.forEach(key => {
+                    const issue = issueDatabase[key];
+                    const issueEl = document.createElement('div');
+                    issueEl.className = 'flex items-center justify-between bg-white p-2 rounded border border-slate-200 text-sm';
+                    issueEl.innerHTML = `
+                        <div>
+                            <span class="font-semibold text-slate-800">${issue.text}</span>
+                            <span class="ml-2 text-xs text-white font-semibold px-2 py-0.5 rounded-full ${issue.type === 'critical' ? 'bg-red-500' : issue.type === 'serious' ? 'bg-orange-500' : 'bg-yellow-500'}">${issue.type}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="edit-custom-issue-btn text-sky-600 hover:text-sky-800 font-semibold" data-key="${key}">Edit</button>
+                            <button class="delete-custom-issue-btn text-red-600 hover:text-red-800 font-semibold" data-key="${key}">Delete</button>
+                        </div>
+                    `;
+                    container.appendChild(issueEl);
+                });
+            }
+            
+            loadCustomIssues();
+
+            // --- TAB LOGIC ---
+            const tabs = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    const targetId = `${tab.dataset.tab}-tab`;
+                    tabContents.forEach(c => {
+                        c.classList.remove('active');
+                        if (c.id === targetId) {
+                            c.classList.add('active');
+                        }
+                    });
+
+                    if (targetId === 'report-tab' && !sbsInitialized) {
+                        initializeSBSTools();
+                        sbsInitialized = true;
+                    }
+                    if (targetId === 'issues-tab' && !issuesInitialized) {
+                        initializeIssuesTab();
+                        issuesInitialized = true;
+                    }
+                    if (targetId === 'tools-tab' && !ndcgToolsInitialized) {
+                         initializeNDCGTools();
+                         ndcgToolsInitialized = true;
+                    }
+                });
+            });
+            
+            // --- nDCG LOGIC ---
+            function initializeNDCGTools() {
+                const ndcgCheckboxes = document.querySelectorAll('.ndcg-checkbox');
+                const sendToLsBtn = document.getElementById('send-to-ls-btn');
+                const sendToRsBtn = document.getElementById('send-to-rs-btn');
+                const ptSuggestionList = document.getElementById('pt-suggestion-list');
+
+                function updatePtSuggestions() {
+                    const checkedBoxes = Array.from(ndcgCheckboxes).filter(cb => cb.checked);
+                    ptSuggestionList.innerHTML = '';
+                    if (checkedBoxes.length === 0) { ptSuggestionList.innerHTML = '<p id="pt-placeholder" class="text-slate-500">Select issues above to see PT suggestions.</p>'; return; }
+                    const ptCounts = checkedBoxes.reduce((acc, cb) => { const pt = cb.dataset.pt; acc[pt] = (acc[pt] || 0) + 1; return acc; }, {});
+                    let suggestedPts = [...new Set(checkedBoxes.map(cb => cb.dataset.pt))];
+                    const hasAPriority = checkedBoxes.some(cb => cb.dataset.priority === 'A');
+                    
+                    if (hasAPriority) {
+                        suggestedPts = suggestedPts.filter(pt => ptDatabase[pt]?.priority === 'A');
+                    }
+                    
+                    suggestedPts.sort((ptA, ptB) => {
+                        const countDiff = ptCounts[ptB] - ptCounts[ptA];
+                        if (countDiff !== 0) return countDiff;
+                        
+                        const subPriorityA = Math.min(...checkedBoxes.filter(cb => cb.dataset.pt === ptA).map(cb => parseInt(cb.dataset.subPriority)));
+                        const subPriorityB = Math.min(...checkedBoxes.filter(cb => cb.dataset.pt === ptB).map(cb => parseInt(cb.dataset.subPriority)));
+                        return subPriorityA - subPriorityB;
+                    });
+                    
+                    suggestedPts.forEach((pt, index) => {
+                        const info = ptDatabase[pt] || { priority: 'N/A', description: 'No description available.' };
+                        let description = info.description;
+
+                        if (pt === "Invalid commodity") {
+                            const hasNoValue = checkedBoxes.some(cb => cb.dataset.key === 'inv_no_value');
+                            const hasSomeValue = checkedBoxes.some(cb => cb.dataset.key === 'inv_some_value');
+                            if (hasNoValue && !hasSomeValue) {
+                                description = "All SKUs are sold out or the product link is broken, providing no value to the user.";
+                            } else if (!hasNoValue && hasSomeValue) {
+                                description = "The main SKU is unavailable, but other SKUs are still in stock, providing some value.";
+                            }
+                        }
+
+                        const label = document.createElement('label');
+                        label.className = "flex items-center text-sm text-slate-700";
+                        const input = document.createElement('input');
+                        input.type = 'radio'; input.name = 'pt-suggestion'; input.className = 'mr-2';
+                        if (index === 0) input.checked = true;
+                        const span = document.createElement('span');
+                        span.textContent = pt;
+                        const infoIcon = document.createElement('span');
+                        infoIcon.className = 'info-icon';
+                        infoIcon.innerHTML = `i<span class="tooltip"><strong>Priority:</strong> ${info.priority}<br><strong>Description:</strong> ${description}</span>`;
+                        label.appendChild(input); label.appendChild(span); label.appendChild(infoIcon);
+                        ptSuggestionList.appendChild(label);
+                    });
+                }
+
+                function updateScoreColor(score) {
+                    const baseClass = 'text-3xl font-bold text-white rounded-full flex items-center justify-center w-16 h-16 transition-colors';
+                    let colorClass = 'bg-sky-600';
+                    if (score === 2) colorClass = 'bg-emerald-600';
+                    else if (score === 1) colorClass = 'bg-amber-500';
+                    else if (score === 0) colorClass = 'bg-red-700';
+                    document.getElementById('dcg-score-display').className = `${baseClass} ${colorClass}`;
+                }
+                
+                calculateDcgScore = () => {
+                    let score = 3;
+                    const criticalIssues = Array.from(ndcgCheckboxes).filter(cb => cb.checked && cb.dataset.type === 'critical');
+                    if (criticalIssues.length > 0) {
+                        score = 0;
+                        document.getElementById('deduction-fieldset').disabled = true;
+                    } else {
+                        document.getElementById('deduction-fieldset').disabled = false;
+                        const seriousIssues = Array.from(ndcgCheckboxes).filter(cb => cb.checked && cb.dataset.type === 'serious');
+                        const minorIssuesCount = Array.from(ndcgCheckboxes).filter(cb => cb.checked && cb.dataset.type === 'minor').length;
+                        
+                        let seriousDeduction = 0;
+                        if (seriousIssues.length > 0) {
+                            if (seriousIssues.some(cb => cb.dataset.key === 'rel_weak')) {
+                                seriousDeduction = 2;
+                            } else {
+                                seriousDeduction = Math.min(seriousIssues.length, 1);
+                            }
+                            score -= seriousDeduction;
+                        } else if (minorIssuesCount >= 2) {
+                            score -= 1;
+                        }
+                    }
+                    document.getElementById('dcg-score-display').textContent = score;
+                    updateScoreColor(score);
+                    updatePtSuggestions();
+                }
+
+                ndcgCheckboxes.forEach(checkbox => {
+                    const rankSelect = checkbox.closest('label').querySelector('.rank-select');
+                    checkbox.addEventListener('change', () => {
+                        rankSelect.disabled = !checkbox.checked;
+                        if (!checkbox.checked) {
+                            rankSelect.value = "";
+                        }
+                        calculateDcgScore();
+                    });
+                });
+
+                function sendIssuesToSide(side) {
+                    let issuesAdded = 0;
+                    const issuesArray = side === 'ls' ? lsIssues : rsIssues;
+                    
+                    ndcgCheckboxes.forEach(checkbox => {
+                        if (checkbox.checked) {
+                            const rankSelect = checkbox.closest('label').querySelector('.rank-select');
+                            const rank = rankSelect.value;
+                            if (rank) {
+                                issuesArray.push({
+                                    rank: parseInt(rank),
+                                    key: checkbox.dataset.key,
+                                    comment: ''
+                                });
+                                issuesAdded++;
+                            }
+                        }
+                    });
+
+                    if (issuesAdded > 0) {
+                        issuesArray.sort((a, b) => a.rank - b.rank);
+                        document.querySelector('.tab-button[data-tab="report"]').click();
+                        if (sbsInitialized) {
+                            renderSbsIssues(side);
+                            calculateGsbSuggestion();
+                        }
+                        alert(`${issuesAdded} issue(s) sent to the SBS Generator (${side.toUpperCase()}).`);
+                    } else {
+                        alert('No issues were sent. Please select a rank for at least one checked issue.');
+                    }
+                }
+
+                if (sendToLsBtn) sendToLsBtn.addEventListener('click', () => sendIssuesToSide('ls'));
+                if (sendToRsBtn) sendToRsBtn.addEventListener('click', () => sendIssuesToSide('rs'));
+                
+                calculateDcgScore();
+            }
+
+            // --- MANAGE ISSUES TAB LOGIC ---
+            function initializeIssuesTab() {
+                renderCustomIssuesList();
+
+                const addCustomIssueBtn = document.getElementById('add-custom-issue-btn');
+                if (addCustomIssueBtn) {
+                    addCustomIssueBtn.addEventListener('click', () => {
+                        const nameInput = document.getElementById('custom-issue-name');
+                        const typeInput = document.getElementById('custom-issue-type');
+                        const name = nameInput.value.trim();
+                        const type = typeInput.value;
+
+                        if (!name) {
+                            alert('Please enter a name for the custom issue.');
+                            return;
+                        }
+                        
+                        const newKey = `custom_${Date.now()}`;
+                        const newIssue = {
+                            text: name,
+                            type: type,
+                            priority: type === 'critical' ? 0 : (type === 'serious' ? 2 : 3),
+                            dcg: type === 'critical' ? 0 : 2,
+                            report_name: name
+                        };
+
+                        issueDatabase[newKey] = newIssue;
+                        saveCustomIssues();
+                        populateSbsSelects();
+                        renderCustomIssuesList();
+
+                        nameInput.value = '';
+                        typeInput.value = 'minor';
+                    });
+                }
+
+                const customIssuesContainer = document.getElementById('custom-issues-list-container');
+                if (customIssuesContainer) {
+                    customIssuesContainer.addEventListener('click', (e) => {
+                        const target = e.target;
+                        const key = target.dataset.key;
+
+                        if (target.classList.contains('delete-custom-issue-btn')) {
+                            if (confirm(`Are you sure you want to delete the issue "${issueDatabase[key].text}"?`)) {
+                                delete issueDatabase[key];
+                                saveCustomIssues();
+                                populateSbsSelects();
+                                renderCustomIssuesList();
+                            }
+                        }
+
+                        if (target.classList.contains('edit-custom-issue-btn')) {
+                            const issue = issueDatabase[key];
+                            document.getElementById('edit-issue-key').value = key;
+                            document.getElementById('edit-issue-name').value = issue.text;
+                            document.getElementById('edit-issue-type').value = issue.type;
+                            document.getElementById('edit-issue-modal').classList.remove('hidden');
+                            document.getElementById('edit-issue-modal').classList.add('flex');
+                        }
+                    });
+                }
+
+                const modal = document.getElementById('edit-issue-modal');
+                const cancelEditBtn = document.getElementById('cancel-edit-btn');
+                const saveEditBtn = document.getElementById('save-edit-btn');
+
+                function closeModal() {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
+
+                if (modal && cancelEditBtn && saveEditBtn) {
+                    cancelEditBtn.addEventListener('click', closeModal);
+                    
+                    saveEditBtn.addEventListener('click', () => {
+                        const key = document.getElementById('edit-issue-key').value;
+                        const newName = document.getElementById('edit-issue-name').value.trim();
+                        const newType = document.getElementById('edit-issue-type').value;
+
+                        if (!newName) {
+                            alert('Issue name cannot be empty.');
+                            return;
+                        }
+
+                        issueDatabase[key].text = newName;
+                        issueDatabase[key].type = newType;
+                        issueDatabase[key].priority = newType === 'critical' ? 0 : (type === 'serious' ? 2 : 3);
+                        issueDatabase[key].dcg = newType === 'critical' ? 0 : 2;
+                        issueDatabase[key].report_name = newName;
+
+                        saveCustomIssues();
+                        populateSbsSelects();
+                        renderCustomIssuesList();
+                        closeModal();
+                    });
+                }
+            }
+            
+            function populateSbsSelects() {
+                 const selects = [document.getElementById('ls-issue-select'), document.getElementById('rs-issue-select')];
+                 selects.forEach(select => {
+                    if (!select) return;
+                    const currentValue = select.value;
+                    select.innerHTML = '';
+                    
+                    const standardOptgroup = document.createElement('optgroup');
+                    standardOptgroup.label = 'Standard Issues';
+                    
+                    const customOptgroup = document.createElement('optgroup');
+                    customOptgroup.label = 'Custom Issues';
+
+                    let hasCustomIssues = false;
+
+                    Object.keys(issueDatabase).sort((a, b) => issueDatabase[a].text.localeCompare(issueDatabase[b].text)).forEach(key => {
+                        const option = document.createElement('option');
+                        option.value = key;
+                        option.textContent = issueDatabase[key].text;
+                        
+                        if (key.startsWith('custom_')) {
+                            customOptgroup.appendChild(option);
+                            hasCustomIssues = true;
+                        } else {
+                            standardOptgroup.appendChild(option);
+                        }
+                    });
+
+                    select.appendChild(standardOptgroup);
+                    if (hasCustomIssues) {
+                        select.appendChild(customOptgroup);
+                    }
+                    select.value = currentValue;
+                 });
+            }
+
+            function renderSbsIssues(side) {
+                const issueLog = document.getElementById(`${side}-issue-log`);
+                if (!issueLog) return;
+                const issuesArray = side === 'ls' ? lsIssues : rsIssues;
+                issueLog.innerHTML = '';
+                if (issuesArray.length > 0) {
+                    issuesArray.forEach((issue, index) => {
+                        const issueDiv = document.createElement('div');
+                        issueDiv.className = 'flex justify-between items-center bg-white p-2 rounded text-slate-700';
+                        let commentHTML = issue.comment ? `<br><span class="text-xs text-slate-500 pl-2">- ${issue.comment}</span>` : '';
+                        const issueText = issueDatabase[issue.key] ? issueDatabase[issue.key].text : 'Unknown Issue';
+                        issueDiv.innerHTML = `<div><span><b>R${issue.rank}:</b> ${issueText}</span>${commentHTML}</div><span class="delete-btn" data-type="sbs" data-side="${side}" data-index="${index}">✖</span>`;
+                        issueLog.appendChild(issueDiv);
+                    });
+                }
+            }
+            
+            function updateGsbUI(score, reason) {
+                const suggestionText = document.getElementById('gsb-suggestion-text');
+                suggestionText.innerHTML = `<strong class="text-lg">Suggested GSB: ${score > 0 ? '+' : ''}${score}</strong><br><span class="text-sm text-slate-500">${reason}</span>`;
+                const radio = document.querySelector(`input[name="gsb-score"][value="${score}"]`);
+                if (radio) radio.checked = true;
+            }
+            
+            function calculateGsbSuggestion() {
+                const getSeverityScore = (issue) => {
+                    if (!issue) return 0;
+                    if (issue.priority === 0) return 3; // Critical
+                    if (issue.priority === 1) return 2; // P1 Serious (Weak Rel)
+                    if (issue.priority === 2) return 1; // P2 Serious (Other)
+                    return 0;
+                };
+
+                const analyzeSide = (issues) => {
+                    const seriousIssuesByRank = {};
+                    let minorCount = 0;
+                    
+                    issues.forEach(iss => {
+                        const issueDetails = issueDatabase[iss.key];
+                        if (!issueDetails) return;
+
+                        if (issueDetails.type === 'serious' || issueDetails.type === 'critical') {
+                            if (!seriousIssuesByRank[iss.rank]) {
+                                seriousIssuesByRank[iss.rank] = [];
+                            }
+                            seriousIssuesByRank[iss.rank].push(issueDetails);
+                        } else if (issueDetails.type === 'minor') {
+                            minorCount++;
+                        }
+                    });
+
+                    const seriousDocCount = Object.keys(seriousIssuesByRank).length; 
+                    
+                    return { minorCount, seriousDocCount, seriousIssuesByRank };
+                };
+
+                const lsAnalysis = analyzeSide(lsIssues);
+                const rsAnalysis = analyzeSide(rsIssues);
+
+                let score = 0;
+                let reason = 'Both sides are balanced or the difference is minimal.';
+
+                // Rule 1: Absolute advantage by count (±2)
+                const seriousDocDiff = lsAnalysis.seriousDocCount - rsAnalysis.seriousDocCount;
+                if (Math.abs(seriousDocDiff) >= 4) {
+                    score = seriousDocDiff > 0 ? -2 : 2;
+                    reason = `Absolute advantage: difference of 4 or more docs with serious issues (${lsAnalysis.seriousDocCount} vs ${rsAnalysis.seriousDocCount}).`;
+                    updateGsbUI(score, reason);
+                    return;
+                }
+
+                // Rule 2: Rank-by-rank direct comparison for severity differences
+                for (let rank = 1; rank <= 6; rank++) {
+                    const lsTopIssue = lsAnalysis.seriousIssuesByRank[rank]?.sort((a, b) => a.priority - b.priority)[0] || null;
+                    const rsTopIssue = rsAnalysis.seriousIssuesByRank[rank]?.sort((a, b) => a.priority - b.priority)[0] || null;
+                    
+                    const lsSeverity = getSeverityScore(lsTopIssue);
+                    const rsSeverity = getSeverityScore(rsTopIssue);
+
+                    if (lsSeverity > rsSeverity) {
+                        score = -1;
+                        reason = `Greater advantage for RS: LS has a more severe issue at Rank ${rank}.`;
+                        updateGsbUI(score, reason);
+                        return;
+                    }
+                    if (rsSeverity > lsSeverity) {
+                        score = 1;
+                        reason = `Greater advantage for LS: RS has a more severe issue at Rank ${rank}.`;
+                        updateGsbUI(score, reason);
+                        return;
+                    }
+                }
+
+                // Rule 3: Fallback to simple count if no rank-by-rank winner is found
+                if (seriousDocDiff > 0) {
+                    score = -1;
+                    reason = `Greater advantage for RS: LS has more docs with serious issues (${lsAnalysis.seriousDocCount} vs ${rsAnalysis.seriousDocCount}).`;
+                    updateGsbUI(score, reason);
+                    return;
+                }
+                if (seriousDocDiff < 0) {
+                    score = 1;
+                    reason = `Greater advantage for LS: RS has more docs with serious issues (${rsAnalysis.seriousDocCount} vs ${lsAnalysis.seriousDocCount}).`;
+                    updateGsbUI(score, reason);
+                    return;
+                }
+                
+                // Rule 4: Tie-breaker with minor issues
+                const minorGap = Math.abs(lsAnalysis.minorCount - rsAnalysis.minorCount);
+                if (minorGap >= 3) {
+                    if (lsAnalysis.minorCount > rsAnalysis.minorCount) {
+                        score = -1;
+                        reason = `Serious issues are balanced. RS wins on minor issues (gap ≥ 3).`;
+                    } else {
+                        score = 1;
+                        reason = `Serious issues are balanced. LS wins on minor issues (gap ≥ 3).`;
+                    }
+                }
+                
+                updateGsbUI(score, reason);
+            }
+
+
+            // --- SBS & REMARKS GENERATOR LOGIC ---
+            function initializeSBSTools() {
+                const originalQueryInput = document.getElementById('original-query');
+                
+                async function translateQuery() {
+                    const queryIntentInput = document.getElementById('query-intent');
+                    const queryText = originalQueryInput.value.trim();
+
+                    if (!queryText) { 
+                        queryIntentInput.value = '';
+                        return; 
+                    }
+
+                    if (!BACKEND_TRANSLATE_URL) {
+                        queryIntentInput.placeholder = 'BACKEND_TRANSLATE_URL is not set in the script.';
+                        console.error("BACKEND_TRANSLATE_URL is not configured.");
+                        return;
+                    }
+
+                    queryIntentInput.value = '';
+                    queryIntentInput.placeholder = 'Translating...';
+                    
+                    try {
+                        const response = await fetch(BACKEND_TRANSLATE_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ text: queryText }),
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                        }
+                        
+                        const result = await response.json();
+                        
+                        if (result.translation) {
+                            queryIntentInput.value = result.translation;
+                        } else {
+                           throw new Error("Invalid response from server.");
+                        }
+
+                    } catch (error) {
+                        console.error('Translation failed:', error);
+                        queryIntentInput.placeholder = 'Auto-translation failed. Please enter manually.';
+                    } 
+                }
+
+                if (originalQueryInput) {
+                    originalQueryInput.addEventListener('blur', translateQuery);
+                }
+
+                const generateBtn = document.getElementById('generate-report-btn');
+                const copyBtn = document.getElementById('copy-report-btn');
+                const clearBtn = document.getElementById('clear-tool-btn');
+                
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', () => {
+                        if (confirm("Are you sure you want to clear all fields and start a new case?")) {
+                            resetTool();
+                        }
+                    });
+                }
+
+                if (copyBtn) { 
+                    copyBtn.addEventListener('click', () => {
+                        const reportText = document.getElementById('final-report');
+                         if (!reportText.value) {
+                            alert("Nothing to copy!");
+                            return;
+                        }
+                        reportText.select();
+                        try {
+                            document.execCommand('copy');
+                            if (confirm("Template copied successfully! Do you want to clear the tool for a new case?")) {
+                                resetTool();
+                            }
+                        } catch (err) {
+                            console.error('Fallback: Oops, unable to copy', err);
+                        }
+                    });
+                }
+
+                if (generateBtn) {
+                    generateBtn.addEventListener('click', () => {
+                        let report = '';
+                        report += `Query = ${document.getElementById('original-query').value || 'N/A'}\n`;
+                        report += `It is looking for ${document.getElementById('query-intent').value || 'N/A'}\n\n`;
+
+                        const processSide = (side, issues) => {
+                            const adRanksInput = document.getElementById(`${side.toLowerCase()}-ad-ranks`);
+                            const adRanks = adRanksInput.value.trim();
+                            let sideReport = `${side.toUpperCase()}: ${adRanks ? `Ads on Rank ${adRanks}` : 'No Ads'}\n`;
+                            
+                            let ranksWithIssues = {};
+                            let ranksWithoutIssues = [1, 2, 3, 4, 5, 6];
+
+                            issues.forEach(issue => {
+                                ranksWithIssues[issue.rank] = ranksWithIssues[issue.rank] || [];
+                                ranksWithIssues[issue.rank].push(issue);
+                                ranksWithoutIssues = ranksWithoutIssues.filter(r => r !== issue.rank);
+                            });
+                            
+                            if (ranksWithoutIssues.length > 0) {
+                                sideReport += `Rank ${ranksWithoutIssues.join(', ')} - Relevants\n`;
+                            }
+                            
+                            const groupedByProfile = {};
+                            for (const rank in ranksWithIssues) {
+                                const issuesForRank = ranksWithIssues[rank];
+                                // Create a consistent key for grouping by sorting issues by their key first
+                                issuesForRank.sort((a, b) => a.key.localeCompare(b.key));
+                                const profileKey = issuesForRank.map(iss => `${iss.key}|${iss.comment}`).join(';');
+                                
+                                if (!groupedByProfile[profileKey]) {
+                                    groupedByProfile[profileKey] = [];
+                                }
+                                groupedByProfile[profileKey].push(rank);
+                            }
+
+                            // Sort the groups by the lowest rank in each group
+                            const sortedGroupKeys = Object.keys(groupedByProfile).sort((a, b) => {
+                                const minRankA = Math.min(...groupedByProfile[a].map(Number));
+                                const minRankB = Math.min(...groupedByProfile[b].map(Number));
+                                return minRankA - minRankB;
+                            });
+
+                            for (const profileKey of sortedGroupKeys) {
+                                const ranks = groupedByProfile[profileKey].map(Number).sort((a,b) => a - b).join(', ');
+                                const representativeIssues = ranksWithIssues[groupedByProfile[profileKey][0]];
+                                
+                                const counts = { serious: 0, minor: 0, critical: 0 };
+                                representativeIssues.forEach(issue => {
+                                    const type = issueDatabase[issue.key]?.type;
+                                    if (type) counts[type]++;
+                                });
+
+                                let summaryParts = [];
+                                if (counts.critical > 0) summaryParts.push(`${counts.critical} critical issue${counts.critical > 1 ? 's' : ''}`);
+                                if (counts.serious > 0) summaryParts.push(`${counts.serious} serious issue${counts.serious > 1 ? 's' : ''}`);
+                                if (counts.minor > 0) summaryParts.push(`${counts.minor} minor issue${counts.minor > 1 ? 's' : ''}`);
+                                
+                                let summaryStr = summaryParts.join(' / ');
+                                if (groupedByProfile[profileKey].length > 1) summaryStr += ' each';
+
+                                const detailsStr = representativeIssues.map(issue => {
+                                    const issueInfo = issueDatabase[issue.key];
+                                    if (!issueInfo) return 'Unknown Issue';
+                                    let detail = issueInfo.report_name;
+                                    if (issue.comment) detail += ` (${issue.comment})`;
+                                    return detail;
+                                }).join(' / ');
+                                
+                                sideReport += `Rank ${ranks} - ${summaryStr} - ${detailsStr}\n`;
+                            }
+
+                            return sideReport;
+                        };
+                        
+                        report += processSide('LS', lsIssues) + '\n';
+                        report += processSide('RS', rsIssues) + '\n';
+
+                        const gsbScoreEl = document.querySelector('input[name="gsb-score"]:checked');
+                        const gsbScore = gsbScoreEl ? gsbScoreEl.value : '0';
+                        const rationaleEl = document.getElementById('gsb-suggestion-text').querySelector('span');
+                        const rationale = rationaleEl ? rationaleEl.textContent : 'Sides are balanced.';
+                        report += `GSB Score: ${parseInt(gsbScore) > 0 ? '+' : ''}${gsbScore} - ${rationale}`;
+
+                        document.getElementById('final-report').value = report;
+                    });
+                }
+                
+                function setupSbsSide(side) {
+                    const addBtn = document.getElementById(`${side}-add-issue-btn`);
+                    if (!addBtn) return;
+                    addBtn.addEventListener('click', () => {
+                        const rank = document.getElementById(`${side}-issue-rank`).value;
+                        const key = document.getElementById(`${side}-issue-select`).value;
+                        const commentInput = document.getElementById(`${side}-issue-comment`);
+                        const comment = commentInput.value.trim();
+                        
+                        const issuesArray = side === 'ls' ? lsIssues : rsIssues;
+                        issuesArray.push({ rank: parseInt(rank), key, comment });
+                        issuesArray.sort((a, b) => a.rank - b.rank);
+                        
+                        renderSbsIssues(side);
+                        calculateGsbSuggestion();
+                        commentInput.value = '';
+                    });
+                }
+
+                renderSbsIssues('ls');
+                renderSbsIssues('rs');
+                calculateGsbSuggestion();
+                setupSbsSide('ls');
+                setupSbsSide('rs');
+            }
+
+            document.addEventListener('click', (e) => {
+                 if (!e.target.classList.contains('delete-btn') || e.target.dataset.type !== 'sbs') return;
+                 const side = e.target.dataset.side;
+                 const index = parseInt(e.target.dataset.index);
+                 const issuesArray = side === 'ls' ? lsIssues : rsIssues;
+                 issuesArray.splice(index, 1);
+                 renderSbsIssues(side);
+                 calculateGsbSuggestion();
+            });
+            
+            populateSbsSelects();
+            initializeNDCGTools();
+            ndcgToolsInitialized = true;
+        });
+    </script>
+</body>
+</html>
+
+
